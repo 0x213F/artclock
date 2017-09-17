@@ -1,2 +1,2 @@
-resizeCanvas();
+resizeCanvas(window);
 draw();

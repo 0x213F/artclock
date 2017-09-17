@@ -3,10 +3,6 @@
   margin  : 0px;
   padding : 0px;
   border  : 0px;
-  font-family: monospace;
-  line-height: 1.8em;
-  color: white;
-  background-color: white;
 }
 
 /* just to be sure these are full screen */
@@ -18,7 +14,7 @@ html, body {
 /* to remove the scrollbars */
 canvas {
   display : block;
-  top: 0px;
+  position: absolute;
 }
 
 /*
