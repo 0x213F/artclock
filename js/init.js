@@ -53,11 +53,35 @@ function resizeCanvas({
 function draw() {
 
     // recursively redraw the canvas at screen refresh rate
-    requestAnimationFrame(draw);
+    // requestAnimationFrame(draw);
+
+    let d = new Date();
+
+    time[0] = Math.floor(d.getHours() / 10);
+    time[1] = d.getHours() % 10;
+    time[2] = Math.floor(d.getMinutes() / 10);
+    time[3] = d.getMinutes() % 10;
+
+    animation.start  = [null,null,null,null];
+    animation.finish = [null,null,null,null];
+    animation.et   = d.getTime() + 1000;
+    animation.st   = d.getTime();
+    animation.tt   = 1000;
+
+    for(let i in animation.start) {
+
+        // TODO faster deep copy
+        animation.start[i] = JSON.parse(JSON.stringify(clock[i]));
+        animation.finish[i] = JSON.parse(JSON.stringify(hand_positions[time[i]]));
+    }
+
+    //console.log(hand_positions[time[0]][0][0][0] + 2*pi)
 
     // wipe the canvas clean
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // NOTE I moved this to rendering_function since that
+    // is what will redraw every frame
+    // context.clearRect(0, 0, canvas.width, canvas.height);
 
     // paint!
-    return rendering_function();
+    return update_clock();
 }

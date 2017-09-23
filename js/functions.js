@@ -1,3 +1,31 @@
+function update_clock() {
+    requestAnimationFrame(update_clock);
+
+    let d = new Date().getTime();
+
+    if(d > animation.et) {
+        return;
+    }
+
+    let t = (d - animation.st) / animation.tt;
+
+    for(var i in coords) {
+        for(var j=0 ; j<6 ; j++) {
+            for(var k=0 ; k<4 ; k++) {
+
+                console.log(animation.finish[i][j][k][0])
+
+                let hour_hand_pos = animation.start[i][j][k][0] + (animation.finish[i][j][k][0] - animation.start[i][j][k][0]) * t;
+                let min_hand_pos = animation.start[i][j][k][1] + (animation.finish[i][j][k][1] - animation.start[i][j][k][1]) * t;
+                clock[i][j][k] = [hour_hand_pos, min_hand_pos];
+            }
+        }
+    }
+
+
+    rendering_function();
+}
+
 /**
  * draw canvas
  * @param {Object} clear
@@ -9,6 +37,9 @@
  */
 function rendering_function() {
 
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // define size of canvas
     let height = canvas.height,
         width  = canvas.width,
         scale  = window.devicePixelRatio;
@@ -19,6 +50,7 @@ function rendering_function() {
             y : height/2,
         };
 
+    // the can board fit horizontally
     if(horizontal) {
 
         let digit_width = height / 3 * 2;
@@ -37,6 +69,8 @@ function rendering_function() {
 
         }
 
+    // the board fills the maximum vertical height
+    // TODO the board fits vertically at maximum width
     } else {
 
         let digit_width = height / 3;
@@ -69,37 +103,42 @@ function rendering_function() {
                     xpos = x+side/2 + side*k,
                     ypos = y+side/2 + side*j;
 
-                let n,
-                    d = new Date();
+                let d = new Date();
 
-                if(i == 0) n = Math.floor(d.getHours() / 10);
-                else if(i == 1) n = d.getHours() % 10;
-                else if(i == 2) n = Math.floor(d.getMinutes() / 10);
-                else if(i == 3) n = d.getMinutes() % 10;
+                let hour_hand_len = side/2 - side/8,
+                    hour_hand_rad = clock[i][j][k][0],
+                    min_hand_len  = side/2 - side/6,
+                    min_hand_rad  = clock[i][j][k][1];
 
                 // draw clock
                 context.beginPath();
+                context.lineWidth = 1*scale;
                 context.arc(xpos, ypos, side/2 - side/12, 0, 2*Math.PI);
                 context.stroke();
 
                 // draw hour hand
                 context.beginPath();
+                context.lineWidth = 3*scale;
                 context.moveTo(xpos, ypos);
-                context.lineTo(get_x(xpos, side/2 - side/8, hand_positions[n][j][k][0]), get_y(ypos, side/2 - side/8, hand_positions[n][j][k][0]));
+                context.lineTo(
+                    get_x(xpos, hour_hand_len, hour_hand_rad),
+                    get_y(ypos, hour_hand_len, hour_hand_rad)
+                );
                 context.stroke();
 
                 // draw minute hand
                 context.beginPath();
+                context.lineWidth = 3*scale;
                 context.moveTo(xpos, ypos);
-                context.lineTo(get_x(xpos, side/2 - side/6, hand_positions[n][j][k][1]), get_y(ypos, side/2 - side/6, hand_positions[n][j][k][1]));
+                context.lineTo(
+                    get_x(xpos, min_hand_len, min_hand_rad),
+                    get_y(ypos, min_hand_len, min_hand_rad)
+                );
                 context.stroke();
 
             }
         }
     }
-
-
-    //canvas.style.backgroundColor = 'black'
 
     return;
 }
