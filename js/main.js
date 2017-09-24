@@ -4,4 +4,5 @@ resizeCanvas(window);
 
 draw();
 
-setInterval(draw, 60000);
+setInterval(draw, 2000);
+//draw()

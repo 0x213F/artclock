@@ -1,27 +1,49 @@
 function update_clock() {
+
+    // can I use `let` here?
+    var getTime = function(time, total) {
+
+        // linear
+        return time / total;
+    }
     requestAnimationFrame(update_clock);
 
     let d = new Date().getTime();
 
     if(d > animation.et) {
-        return;
-    }
 
-    let t = (d - animation.st) / animation.tt;
+        for(let i in animation.start) {
 
-    for(var i in coords) {
-        for(var j=0 ; j<6 ; j++) {
-            for(var k=0 ; k<4 ; k++) {
+            // TODO faster deep copy
+            animation.finish[i] = JSON.parse(JSON.stringify(hand_positions[time[i]]));
+        }
 
-                console.log(animation.finish[i][j][k][0])
+        for(var i in coords) {
+            for(var j=0 ; j<6 ; j++) {
+                for(var k=0 ; k<4 ; k++) {
+                    let hour_hand_pos = animation.finish[i][j][k][0];
+                    let min_hand_pos = animation.finish[i][j][k][1];
 
-                let hour_hand_pos = animation.start[i][j][k][0] + (animation.finish[i][j][k][0] - animation.start[i][j][k][0]) * t;
-                let min_hand_pos = animation.start[i][j][k][1] + (animation.finish[i][j][k][1] - animation.start[i][j][k][1]) * t;
-                clock[i][j][k] = [hour_hand_pos, min_hand_pos];
+                    // remove the animation constant
+                    clock[i][j][k] = [hour_hand_pos - 2*pi, min_hand_pos + 2*pi];
+                }
             }
         }
-    }
+    } else {
 
+        let t = getTime((d - animation.st), animation.tt);
+
+        for(var i in coords) {
+            for(var j=0 ; j<6 ; j++) {
+                for(var k=0 ; k<4 ; k++) {
+                    let hour_hand_pos = animation.start[i][j][k][0] + (animation.finish[i][j][k][0] - animation.start[i][j][k][0]) * t;
+                    let min_hand_pos = animation.start[i][j][k][1] + (animation.finish[i][j][k][1] - animation.start[i][j][k][1]) * t;
+                    clock[i][j][k] = [hour_hand_pos, min_hand_pos];
+                }
+            }
+        }
+
+    }
 
     rendering_function();
 }
@@ -112,12 +134,14 @@ function rendering_function() {
 
                 // draw clock
                 context.beginPath();
+                context.strokeStyle = "#FFFFFF";
                 context.lineWidth = 1*scale;
                 context.arc(xpos, ypos, side/2 - side/12, 0, 2*Math.PI);
                 context.stroke();
 
                 // draw hour hand
                 context.beginPath();
+                context.strokeStyle = "#FFFFFF";
                 context.lineWidth = 3*scale;
                 context.moveTo(xpos, ypos);
                 context.lineTo(
@@ -128,6 +152,7 @@ function rendering_function() {
 
                 // draw minute hand
                 context.beginPath();
+                context.strokeStyle = "#FFFFFF";
                 context.lineWidth = 3*scale;
                 context.moveTo(xpos, ypos);
                 context.lineTo(

@@ -5,7 +5,7 @@ let canvas = document.getElementById('main'),
 
 // resize the canvas when the screen is resized
 window.addEventListener('resize', function() {
-    resizeCanvas(window, canvas, padding, rendering_function);
+    resizeCanvas(window);
 }, false);
 
 /**
@@ -55,7 +55,8 @@ function draw() {
     // recursively redraw the canvas at screen refresh rate
     // requestAnimationFrame(draw);
 
-    let d = new Date();
+    let d = new Date(),
+        transition_time = 800; // milliseconds
 
     time[0] = Math.floor(d.getHours() / 10);
     time[1] = d.getHours() % 10;
@@ -64,15 +65,25 @@ function draw() {
 
     animation.start  = [null,null,null,null];
     animation.finish = [null,null,null,null];
-    animation.et   = d.getTime() + 1000;
+    animation.et   = d.getTime() + transition_time;
     animation.st   = d.getTime();
-    animation.tt   = 1000;
+    animation.tt   = transition_time;
 
     for(let i in animation.start) {
 
         // TODO faster deep copy
         animation.start[i] = JSON.parse(JSON.stringify(clock[i]));
         animation.finish[i] = JSON.parse(JSON.stringify(hand_positions[time[i]]));
+    }
+
+    // TODO make this cleaner
+    for(let i in animation.finish) {
+        for(let j in animation.finish[i]) {
+            for(let k in animation.finish[i][j]) {
+                animation.finish[i][j][k][0] += 2*pi;
+                animation.finish[i][j][k][1] -= 2*pi;
+            }
+        }
     }
 
     //console.log(hand_positions[time[0]][0][0][0] + 2*pi)

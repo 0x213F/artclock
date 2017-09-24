@@ -31,7 +31,7 @@ let coords = [
 
 let animation = {};
 
-let time = [];
+let time = [0, 0, 0, 0];
 
 let clock = [
     [
