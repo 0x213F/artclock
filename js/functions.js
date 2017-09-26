@@ -1,19 +1,142 @@
-function update_clock() {
+////////////////////////////////////////////////////////////////////////////////
 
-    // can I use `let` here?
-    var getTime = function(time, total) {
+/**
+ * Resize canvas
+ * @param {Object} window
+ * @return {Undefined}
+ */
 
-        // linear
-        return time / total;
+function resizeCanvas({
+                         innerWidth       : width,
+                         innerHeight      : height,
+                         devicePixelRatio : scale
+                      }) {
+
+    // is there nothing to draw?
+    if(height < 2*padding || width < 2*padding) {
+        throw 'Padding is larger than view';
     }
-    requestAnimationFrame(update_clock);
 
+    // style the width
+    canvas.width  = (width - 2*padding) * scale;
+    canvas.style.width = (width - 2*padding) + 'px';
+
+    // style the height
+    canvas.height = (height - 2*padding) * scale;
+    canvas.style.height = (height - 2*padding) + 'px';
+
+    // give proper padding
+    canvas.style.top  = padding + 'px';
+    canvas.style.left = padding + 'px';
+
+    // draw the clocks
+    return renderingFunction();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Draw canvas
+ * @return {Undefined}
+ */
+
+function draw() {
+
+    // only allow one animation at a time
+    if(is_drawing) {
+        return;
+    } else {
+        is_drawing = true;
+    }
+
+    // setup the details for the animation
+    let d                = new Date();
+    let transition_time  = 1600;
+
+        time = (Number(time.join('')) + 1).toString();
+        while(time.length !== 4) time = '0' + time;
+        time = time.split('');
+
+        // time[0]          = Math.floor(d.getHours() / 10);
+        // time[1]          = d.getHours() % 10;
+        // time[2]          = Math.floor(d.getMinutes() / 10);
+        // time[3]          = d.getMinutes() % 10;
+        animation.start  = [null,null,null,null];
+        animation.finish = [null,null,null,null];
+        animation.et     = d.getTime() + transition_time;
+        animation.st     = d.getTime();
+        animation.tt     = transition_time;
+
+    // assign the starting and ending values
+
+    for(let i in animation.start) {    // TODO faster deep copy
+        animation.start[i]  = JSON.parse(JSON.stringify(clock[i]));
+        animation.finish[i] = JSON.parse(JSON.stringify(hand_positions[time[i]]));
+    }
+
+    // add radian offset for more dramatic animation
+    for(let i in animation.finish) {
+        for(let j in animation.finish[i]) {
+            for(let k in animation.finish[i][j]) {
+                if(time[3] == 0) {
+                    let should_animate = [
+                        time[0] == 1 && time[1] == 0 && time[2] == 0 && time[3] == 0,
+                        time[2] == 0 && time[3] == 0,
+                        time[3] == 0,
+                        true
+                    ];
+                    if(should_animate[i]) {
+                        animation.finish[i][j][k][0] += 2*pi;
+                        animation.finish[i][j][k][1] -= 2*pi;
+                    } else {
+                        // nothing here
+                    }
+                } else {
+                    if(animation.start[i][j][k][0] === animation.start[i][j][k][0] && animation.start[i][j][k][1] === animation.start[i][j][k][1]) {
+                        // nothing here
+                    } else {
+                        animation.finish[i][j][k][0] += 2*pi;
+                        animation.finish[i][j][k][1] -= 2*pi;
+                    }
+                }
+            }
+        }
+    }
+
+    // start the animation
+    setTimeout(spinHands, 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Animate the clock
+ * @return {Undefined}
+ */
+
+function spinHands() {
+
+    // animation easing
+    const getTime = function(time, total) {
+
+        const url        = new URL(window.location.href);
+        const transition = url.searchParams.get('transition');
+        const t          = time / total;
+
+        if(transition === 'linear') {
+            return t;
+
+        } else  { // if (transition === 'sinusoidal') { // default
+            return (1-Math.cos(t*pi)*Math.sign(Math.sin(t*pi)))/2;
+        }
+
+    }
+
+    // animation is over
     let d = new Date().getTime();
-
     if(d > animation.et) {
 
         for(let i in animation.start) {
-
             // TODO faster deep copy
             animation.finish[i] = JSON.parse(JSON.stringify(hand_positions[time[i]]));
         }
@@ -21,16 +144,25 @@ function update_clock() {
         for(var i in coords) {
             for(var j=0 ; j<6 ; j++) {
                 for(var k=0 ; k<4 ; k++) {
-                    let hour_hand_pos = animation.finish[i][j][k][0];
-                    let min_hand_pos = animation.finish[i][j][k][1];
-
-                    // remove the animation constant
-                    clock[i][j][k] = [hour_hand_pos - 2*pi, min_hand_pos + 2*pi];
+                    let hour_hand_pos,
+                        min_hand_pos;
+                    if(animation.start[i][j][k][0] === animation.start[i][j][k][0] && animation.start[i][j][k][1] === animation.start[i][j][k][1]) {
+                        hour_hand_pos = animation.finish[i][j][k][0];
+                        min_hand_pos = animation.finish[i][j][k][1];
+                    } else {
+                        hour_hand_pos = animation.start[i][j][k][0] - 2*pi;
+                        min_hand_pos = animation.start[i][j][k][1] + 2*pi;
+                    }
+                    clock[i][j][k] = [hour_hand_pos, min_hand_pos];
                 }
             }
         }
+
+    // animation is still going
     } else {
 
+        requestAnimationFrame(spinHands);
+        is_drawing = false;
         let t = getTime((d - animation.st), animation.tt);
 
         for(var i in coords) {
@@ -43,22 +175,22 @@ function update_clock() {
             }
         }
 
+
     }
 
-    rendering_function();
+    // draw the clocks
+    renderingFunction();
 }
 
-/**
- * draw canvas
- * @param {Object} clear
- * @param {Boolean} animate
- * @param {Function} rendering_function
- * @param {Object} canvas
- * @param {Object} context
- * @return {Function}
- */
-function rendering_function() {
+////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Draw the clocks
+ * @return {Undefined}
+ */
+function renderingFunction() {
+
+    // clear the canvas from last frame
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     // define size of canvas
@@ -80,7 +212,7 @@ function rendering_function() {
         for(let i in coords) {
 
             let curr        = coords[i];
-                curr.x      = i < 2 ? middle.x + digit_width * i - 2.25*digit_width : middle.x + digit_width * i - 1.75*digit_width;
+                curr.x      = i < 2 ? middle.x + digit_width * i - 2.125*digit_width : middle.x + digit_width * i - 1.875*digit_width;
                 curr.y      = 0;
                 curr.height = height;
                 curr.width  = digit_width;
@@ -132,17 +264,18 @@ function rendering_function() {
                     min_hand_len  = side/2 - side/6,
                     min_hand_rad  = clock[i][j][k][1];
 
-                // draw clock
+
+
+                // draw peg
                 context.beginPath();
-                context.strokeStyle = "#FFFFFF";
-                context.lineWidth = 1*scale;
-                context.arc(xpos, ypos, side/2 - side/12, 0, 2*Math.PI);
-                context.stroke();
+                context.arc(xpos, ypos, 2*scale, 0, 2*Math.PI);
+                context.fillStyle = 'white';
+                context.fill();
 
                 // draw hour hand
                 context.beginPath();
                 context.strokeStyle = "#FFFFFF";
-                context.lineWidth = 3*scale;
+                context.lineWidth = 4*scale;
                 context.moveTo(xpos, ypos);
                 context.lineTo(
                     get_x(xpos, hour_hand_len, hour_hand_rad),
@@ -153,7 +286,7 @@ function rendering_function() {
                 // draw minute hand
                 context.beginPath();
                 context.strokeStyle = "#FFFFFF";
-                context.lineWidth = 3*scale;
+                context.lineWidth = 4*scale;
                 context.moveTo(xpos, ypos);
                 context.lineTo(
                     get_x(xpos, min_hand_len, min_hand_rad),
@@ -165,5 +298,4 @@ function rendering_function() {
         }
     }
 
-    return;
 }
