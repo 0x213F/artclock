@@ -7,7 +7,7 @@ document.body.style.backgroundColor = clock_color;
 resizeCanvas(window);
 
 // first animation
-// setTimeout(draw, 800);
+setTimeout(draw, 800);
 
 let d     = new Date();
     delay = 60000 - d.getSeconds() * 1000 + d.getMilliseconds();
