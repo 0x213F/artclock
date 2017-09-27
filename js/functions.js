@@ -78,26 +78,11 @@ function draw() {
     for(let i in animation.finish) {
         for(let j in animation.finish[i]) {
             for(let k in animation.finish[i][j]) {
-                if(time[3] == 0) {
-                    let should_animate = [
-                        time[0] == 1 && time[1] == 0 && time[2] == 0 && time[3] == 0,
-                        time[2] == 0 && time[3] == 0,
-                        time[3] == 0,
-                        true
-                    ];
-                    if(should_animate[i]) {
-                        animation.finish[i][j][k][0] += 2*pi;
-                        animation.finish[i][j][k][1] -= 2*pi;
-                    } else {
-                        // nothing here
-                    }
+                if(animation.start[i][j][k][0] === animation.start[i][j][k][0] && animation.start[i][j][k][1] === animation.start[i][j][k][1]) {
+                    // nothing here
                 } else {
-                    if(animation.start[i][j][k][0] === animation.start[i][j][k][0] && animation.start[i][j][k][1] === animation.start[i][j][k][1]) {
-                        // nothing here
-                    } else {
-                        animation.finish[i][j][k][0] += 2*pi;
-                        animation.finish[i][j][k][1] -= 2*pi;
-                    }
+                    animation.finish[i][j][k][0] += 2*pi;
+                    animation.finish[i][j][k][1] -= 2*pi;
                 }
             }
         }
@@ -199,6 +184,7 @@ function renderingFunction() {
         scale  = window.devicePixelRatio;
 
     let horizontal = 3 * height <= width,
+        vertical = 1.5 * width <= height,
         middle = {
             x : width/2,
             y : height/2,
@@ -218,13 +204,29 @@ function renderingFunction() {
                 curr.width  = digit_width;
                 curr.side   = digit_width / 4;
 
-            context.rect(curr.x, curr.y, curr.width, curr.height);
+            //context.rect(curr.x, curr.y, curr.width, curr.height);
             // context.stroke();
 
         }
 
     // the board fills the maximum vertical height
     // TODO the board fits vertically at maximum width
+    } else if(vertical) {
+
+        let digit_width = width / 8 * 3;
+
+        for(let i in coords) {
+            let curr        = coords[i];
+                curr.x      = i % 2 === 0 ? middle.x - digit_width : middle.x;
+                curr.y      = i < 2       ? middle.y - 1.5*digit_width                     : middle.y;
+                curr.height = height / 2;
+                curr.width  = digit_width;
+                curr.side   = digit_width / 4;
+
+            //context.rect(curr.x, curr.y, curr.width, curr.height);
+            // context.stroke();
+        }
+
     } else {
 
         let digit_width = height / 3;
@@ -237,11 +239,17 @@ function renderingFunction() {
                 curr.width  = digit_width;
                 curr.side   = digit_width / 4;
 
-            context.rect(curr.x, curr.y, curr.width, curr.height);
+            //context.rect(curr.x, curr.y, curr.width, curr.height);
             // context.stroke();
         }
 
     }
+
+    const url            = new URL(window.location.href);
+    let background_color = url.searchParams.get('backgroundColor');
+    canvas.style.backgroundColor = background_color ? '#' + background_color : 'black';
+    const clock_color = url.searchParams.get('clockColor') ? '#' + url.searchParams.get('clockColor') : 'white';
+    console.log(clock_color)
 
     for(let i in coords) {
         let {x, y, height, width, side} = coords[i];
@@ -264,17 +272,22 @@ function renderingFunction() {
                     min_hand_len  = side/2 - side/6,
                     min_hand_rad  = clock[i][j][k][1];
 
-
+                // draw clock
+                context.beginPath();
+                context.lineWidth = 1*scale;
+                context.strokeStyle = clock_color;
+                context.arc(xpos, ypos, side/2 - side/12, 0, 2*Math.PI);
+                context.stroke();
 
                 // draw peg
                 context.beginPath();
                 context.arc(xpos, ypos, 2*scale, 0, 2*Math.PI);
-                context.fillStyle = 'white';
+                context.fillStyle = clock_color;
                 context.fill();
 
                 // draw hour hand
                 context.beginPath();
-                context.strokeStyle = "#FFFFFF";
+                context.strokeStyle = clock_color;
                 context.lineWidth = 4*scale;
                 context.moveTo(xpos, ypos);
                 context.lineTo(
@@ -285,7 +298,7 @@ function renderingFunction() {
 
                 // draw minute hand
                 context.beginPath();
-                context.strokeStyle = "#FFFFFF";
+                context.strokeStyle = clock_color;
                 context.lineWidth = 4*scale;
                 context.moveTo(xpos, ypos);
                 context.lineTo(
