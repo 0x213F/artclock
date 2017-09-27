@@ -13,5 +13,5 @@ let d     = new Date();
     delay = 60000 - d.getSeconds() * 1000 + d.getMilliseconds();
 setTimeout(function() {
     draw();
-    setInterval(draw, 2000);
-}, 800)
+    setInterval(draw, 60000);
+}, delay + 1)

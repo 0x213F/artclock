@@ -53,14 +53,14 @@ function draw() {
     let d                = new Date();
     let transition_time  = 1600;
 
-        time = (Number(time.join('')) + 1).toString();
-        while(time.length !== 4) time = '0' + time;
-        time = time.split('');
+        // time = (Number(time.join('')) + 1).toString();
+        // while(time.length !== 4) time = '0' + time;
+        // time = time.split('');
 
-        // time[0]          = Math.floor(d.getHours() / 10);
-        // time[1]          = d.getHours() % 10;
-        // time[2]          = Math.floor(d.getMinutes() / 10);
-        // time[3]          = d.getMinutes() % 10;
+        time[0]          = Math.floor(d.getHours() / 10);
+        time[1]          = d.getHours() % 10;
+        time[2]          = Math.floor(d.getMinutes() / 10);
+        time[3]          = d.getMinutes() % 10;
         animation.start  = [null,null,null,null];
         animation.finish = [null,null,null,null];
         animation.et     = d.getTime() + transition_time;
